@@ -34,7 +34,9 @@ public class SyscoreIMU extends SwerveIMU {
 
     @Override
     public void setInverted(boolean invertIMU) {
-        throw new UnsupportedOperationException("Unimplemented method 'setInverted'");
+        if(invertIMU) {
+            throw new UnsupportedOperationException("Unimplemented method 'setInverted'");
+        }
     }
 
     @Override

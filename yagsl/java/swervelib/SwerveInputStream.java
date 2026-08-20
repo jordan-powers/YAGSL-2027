@@ -88,7 +88,7 @@ public class SwerveInputStream implements Supplier<ChassisVelocities>
   /**
    * Translational axis scalar value, should be between (0, 1].
    */
-  private       Optional<Double>                 translationAxisScale                = Optional.empty();
+  private       Optional<DoubleSupplier>                 translationAxisScale                = Optional.empty();
   /**
    * Angular velocity axis scalar value, should be between (0, 1]
    */
@@ -509,14 +509,14 @@ public class SwerveInputStream implements Supplier<ChassisVelocities>
   }
 
   /**
-   * Scale the translation axis for {@link SwerveInputStream} by a constant scalar value.
+   * Scale the translation axis for {@link SwerveInputStream}.
    *
    * @param scaleTranslation Translation axis scalar value. (0, 1]
    * @return this
    */
-  public SwerveInputStream scaleTranslation(double scaleTranslation)
+  public SwerveInputStream scaleTranslation(DoubleSupplier scaleTranslation)
   {
-    translationAxisScale = scaleTranslation == 0 ? Optional.empty() : Optional.of(scaleTranslation);
+    translationAxisScale = scaleTranslation == null ? Optional.empty() : Optional.of(scaleTranslation);
     return this;
   }
 
@@ -898,7 +898,7 @@ public class SwerveInputStream implements Supplier<ChassisVelocities>
 
     {
       return SwerveMath.scaleTranslation(new Translation2d(xAxis, yAxis),
-                                         translationAxisScale.get());
+                                         translationAxisScale.get().getAsDouble());
     }
     return new Translation2d(xAxis, yAxis);
   }
