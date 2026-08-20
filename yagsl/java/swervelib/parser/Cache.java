@@ -1,8 +1,9 @@
 package swervelib.parser;
 
-import edu.wpi.first.wpilibj.RobotBase;
-import edu.wpi.first.wpilibj.RobotController;
 import java.util.function.Supplier;
+
+import org.wpilib.framework.RobotBase;
+import org.wpilib.system.RobotController;
 
 /**
  * Cache for frequently requested data.
@@ -37,7 +38,7 @@ public class Cache<T>
   {
     supplier = val;
     value = supplier.get();
-    timestamp = RobotController.getFPGATime();
+    timestamp = RobotController.getMonotonicTime();
     this.validityPeriod = validityPeriod * 1000L;
   }
 
@@ -48,7 +49,7 @@ public class Cache<T>
    */
   public boolean isStale()
   {
-    return (RobotController.getFPGATime() - timestamp) > validityPeriod;
+    return (RobotController.getMonotonicTime() - timestamp) > validityPeriod;
   }
 
   /**
@@ -59,7 +60,7 @@ public class Cache<T>
   public Cache<T> update()
   {
     this.value = supplier.get();
-    this.timestamp = RobotController.getFPGATime();
+    this.timestamp = RobotController.getMonotonicTime();
     return this;
   }
 

@@ -1,8 +1,8 @@
 package swervelib.motors;
 
-import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.Rotations;
-import static edu.wpi.first.units.Units.Volts;
+import static org.wpilib.units.Units.Degrees;
+import static org.wpilib.units.Units.Rotations;
+import static org.wpilib.units.Units.Volts;
 
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
@@ -13,7 +13,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-import edu.wpi.first.math.system.plant.DCMotor;
+import org.wpilib.math.system.DCMotor;
 import swervelib.encoders.SwerveAbsoluteEncoder;
 import swervelib.parser.PIDFConfig;
 import swervelib.telemetry.SwerveDriveTelemetry;
@@ -93,9 +93,9 @@ public class TalonFXSwerve extends SwerveMotor
    * @param isDriveMotor Whether the motor is a drive or steering motor.
    * @param motorType    {@link DCMotor} which the {@link TalonFX} is attached to.
    */
-  public TalonFXSwerve(int id, String canbus, boolean isDriveMotor, DCMotor motorType)
+  public TalonFXSwerve(int id, int canbus, boolean isDriveMotor, DCMotor motorType)
   {
-    this(new TalonFX(id, new CANBus(canbus)), isDriveMotor, motorType);
+    this(new TalonFX(id, CANBus.systemcore(canbus)), isDriveMotor, motorType);
   }
 
   /**
@@ -107,7 +107,7 @@ public class TalonFXSwerve extends SwerveMotor
    */
   public TalonFXSwerve(int id, boolean isDriveMotor, DCMotor motorType)
   {
-    this(new TalonFX(id), isDriveMotor, motorType);
+    this(id, 0, isDriveMotor, motorType);
   }
 
   /**
@@ -247,7 +247,9 @@ public class TalonFXSwerve extends SwerveMotor
   @Override
   public void setMotorBrake(boolean isBrakeMode)
   {
-    motor.setNeutralMode(isBrakeMode ? NeutralModeValue.Brake : NeutralModeValue.Coast);
+    cfg.refresh(configuration.MotorOutput);
+    configuration.MotorOutput.withNeutralMode(isBrakeMode ? NeutralModeValue.Brake : NeutralModeValue.Coast);
+    cfg.apply(configuration.MotorOutput);
   }
 
   /**
@@ -282,7 +284,7 @@ public class TalonFXSwerve extends SwerveMotor
   @Override
   public void set(double percentOutput)
   {
-    motor.set(percentOutput);
+    motor.setThrottle(percentOutput);
   }
 
   /**
@@ -384,7 +386,7 @@ public class TalonFXSwerve extends SwerveMotor
   @Override
   public void setPosition(double position)
   {
-    if (!absoluteEncoder && !SwerveDriveTelemetry.isSimulation)
+    if (!absoluteEncoder)
     {
       cfg.setPosition(Degrees.of(position).in(Rotations));
     }

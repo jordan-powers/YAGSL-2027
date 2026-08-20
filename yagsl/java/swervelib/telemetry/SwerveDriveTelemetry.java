@@ -1,18 +1,18 @@
 package swervelib.telemetry;
 
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.networktables.DoubleArrayPublisher;
-import edu.wpi.first.networktables.DoublePublisher;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.networktables.StringPublisher;
-import edu.wpi.first.networktables.StructArrayPublisher;
-import edu.wpi.first.networktables.StructPublisher;
-import edu.wpi.first.wpilibj.Alert.AlertType;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.RobotBase;
-import edu.wpi.first.wpilibj.Timer;
+import org.wpilib.driverstation.DriverStation;
+import org.wpilib.driverstation.RobotState;
+import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.math.kinematics.ChassisVelocities;
+import org.wpilib.math.kinematics.SwerveModuleVelocity;
+import org.wpilib.networktables.DoubleArrayPublisher;
+import org.wpilib.networktables.DoublePublisher;
+import org.wpilib.networktables.NetworkTableInstance;
+import org.wpilib.networktables.StringPublisher;
+import org.wpilib.networktables.StructArrayPublisher;
+import org.wpilib.networktables.StructPublisher;
+import org.wpilib.system.Timer;
+
 import swervelib.SwerveDrive;
 
 /**
@@ -26,19 +26,19 @@ public class SwerveDriveTelemetry
    */
   public static final  Alert                                   canIdWarning             = new Alert("JSON",
                                                                                                     "CAN IDs greater than 40 can cause undefined behaviour, please use a CAN ID below 40!",
-                                                                                                    AlertType.kWarning);
+                                                                                                    Alert.AlertType.kWarning);
   /**
    * An {@link Alert} for if there is an I2C lockup issue on the roboRIO.
    */
   public static final  Alert                                   i2cLockupWarning         = new Alert("IMU",
                                                                                                     "I2C lockup issue detected on roboRIO. Check console for more information.",
-                                                                                                    AlertType.kWarning);
+                                                                                                    Alert.AlertType.kWarning);
   /**
    * NavX serial comm issue.
    */
   public static final  Alert                                   serialCommsIssueWarning  = new Alert("IMU",
                                                                                                     "Serial comms is interrupted with USB and other serial traffic and causes intermittent connected/disconnection issues. Please consider another protocol or be mindful of this.",
-                                                                                                    AlertType.kWarning);
+                                                                                                    Alert.AlertType.kWarning);
   /**
    * Module counter publisher for NT4
    */
@@ -72,22 +72,22 @@ public class SwerveDriveTelemetry
   /**
    * Measured chassis speeds array publisher.
    */
-  private static final DoubleArrayPublisher                    measuredChassisSpeedsArrayPublisher
+  private static final DoubleArrayPublisher                    measuredChassisVelocitiesArrayPublisher
                                                                                         = NetworkTableInstance.getDefault()
                                                                                                               .getTable(
                                                                                                                   "SmartDashboard")
                                                                                                               .getDoubleArrayTopic(
-                                                                                                                  "swerve/measuredChassisSpeeds")
+                                                                                                                  "swerve/measuredChassisVelocities")
                                                                                                               .publish();
   /**
    * Desired chassis speeds array publisher.
    */
-  private static final DoubleArrayPublisher                    desiredChassisSpeedsArrayPublisher
+  private static final DoubleArrayPublisher                    desiredChassisVelocitiesArrayPublisher
                                                                                         = NetworkTableInstance.getDefault()
                                                                                                               .getTable(
                                                                                                                   "SmartDashboard")
                                                                                                               .getDoubleArrayTopic(
-                                                                                                                  "swerve/desiredChassisSpeeds")
+                                                                                                                  "swerve/desiredChassisVelocities")
                                                                                                               .publish();
   /**
    * Robot rotation publisher.
@@ -112,46 +112,46 @@ public class SwerveDriveTelemetry
   /**
    * Struct publisher for AdvantageScope swerve widgets.
    */
-  private static final StructArrayPublisher<SwerveModuleState> measuredStatesStruct
+  private static final StructArrayPublisher<SwerveModuleVelocity> measuredStatesStruct
                                                                                         = NetworkTableInstance.getDefault()
                                                                                                               .getTable(
                                                                                                                   "SmartDashboard")
                                                                                                               .getStructArrayTopic(
                                                                                                                   "swerve/advantagescope/currentStates",
-                                                                                                                  SwerveModuleState.struct)
+                                                                                                                  SwerveModuleVelocity.struct)
                                                                                                               .publish();
   /**
    * Struct publisher for AdvantageScope swerve widgets.
    */
-  private static final StructArrayPublisher<SwerveModuleState> desiredStatesStruct
+  private static final StructArrayPublisher<SwerveModuleVelocity> desiredStatesStruct
                                                                                         = NetworkTableInstance.getDefault()
                                                                                                               .getTable(
                                                                                                                   "SmartDashboard")
                                                                                                               .getStructArrayTopic(
                                                                                                                   "swerve/advantagescope/desiredStates",
-                                                                                                                  SwerveModuleState.struct)
+                                                                                                                  SwerveModuleVelocity.struct)
                                                                                                               .publish();
   /**
-   * Measured {@link ChassisSpeeds} for NT4 AdvantageScope swerve widgets.
+   * Measured {@link ChassisVelocities} for NT4 AdvantageScope swerve widgets.
    */
-  private static final StructPublisher<ChassisSpeeds>          measuredChassisSpeedsStruct
+  private static final StructPublisher<ChassisVelocities>          measuredChassisVelocitiesStruct
                                                                                         = NetworkTableInstance.getDefault()
                                                                                                               .getTable(
                                                                                                                   "SmartDashboard")
                                                                                                               .getStructTopic(
-                                                                                                                  "swerve/advantagescope/measuredChassisSpeeds",
-                                                                                                                  ChassisSpeeds.struct)
+                                                                                                                  "swerve/advantagescope/measuredChassisVelocities",
+                                                                                                                  ChassisVelocities.struct)
                                                                                                               .publish();
   /**
-   * Desired {@link ChassisSpeeds} for NT4 AdvantageScope swerve widgets.
+   * Desired {@link ChassisVelocities} for NT4 AdvantageScope swerve widgets.
    */
-  private static final StructPublisher<ChassisSpeeds>          desiredChassisSpeedsStruct
+  private static final StructPublisher<ChassisVelocities>          desiredChassisVelocitiesStruct
                                                                                         = NetworkTableInstance.getDefault()
                                                                                                               .getTable(
                                                                                                                   "SmartDashboard")
                                                                                                               .getStructTopic(
-                                                                                                                  "swerve/advantagescope/desiredChassisSpeeds",
-                                                                                                                  ChassisSpeeds.struct)
+                                                                                                                  "swerve/advantagescope/desiredChassisVelocities",
+                                                                                                                  ChassisVelocities.struct)
                                                                                                               .publish();
   /**
    * Robot {@link Rotation2d} for AdvantageScope swerve widgets.
@@ -236,7 +236,7 @@ public class SwerveDriveTelemetry
                                                                                            .publish();
   /**
    * Control cycle time, updated whenever
-   * {@link swervelib.SwerveModule#setDesiredState(SwerveModuleState, boolean, double)} is called for the last module.
+   * {@link swervelib.SwerveModule#setDesiredState(SwerveModuleVelocity, boolean, double)} is called for the last module.
    */
   private static final DoublePublisher      ctrlCycleTime
                                                                      = NetworkTableInstance.getDefault()
@@ -256,22 +256,22 @@ public class SwerveDriveTelemetry
   /**
    * Measured swerve module states object.
    */
-  public static        SwerveModuleState[]  measuredStatesObj
-                                                                     = new SwerveModuleState[4];
+  public static        SwerveModuleVelocity[]  measuredStatesObj
+                                                                     = new SwerveModuleVelocity[4];
   /**
    * Desired swerve module states object
    */
-  public static        SwerveModuleState[]  desiredStatesObj
-                                                                     = new SwerveModuleState[4];
+  public static        SwerveModuleVelocity[]  desiredStatesObj
+                                                                     = new SwerveModuleVelocity[4];
   /**
    * The maximum achievable angular velocity of the robot. This is used to visualize the angular velocity from the
    * chassis speeds properties.
    */
-  public static        ChassisSpeeds        measuredChassisSpeedsObj = new ChassisSpeeds();
+  public static        ChassisVelocities        measuredChassisVelocitiesObj = new ChassisVelocities();
   /**
    * Describes the desired forward, sideways and angular velocity of the robot.
    */
-  public static        ChassisSpeeds        desiredChassisSpeedsObj  = new ChassisSpeeds();
+  public static        ChassisVelocities        desiredChassisVelocitiesObj  = new ChassisVelocities();
   /**
    * The robot's current rotation based on odometry or gyro readings
    */
@@ -281,11 +281,6 @@ public class SwerveDriveTelemetry
    */
   public static        TelemetryVerbosity   verbosity
                                                                      = TelemetryVerbosity.MACHINE;
-  /**
-   * State of simulation of the Robot, used to optimize retrieval.
-   */
-  public static        boolean              isSimulation
-                                                                     = RobotBase.isSimulation();
   /**
    * The number of swerve modules
    */
@@ -336,11 +331,11 @@ public class SwerveDriveTelemetry
    * The maximum achievable angular velocity of the robot. This is used to visualize the angular velocity from the
    * chassis speeds properties.
    */
-  public static        double[]             measuredChassisSpeeds    = new double[3];
+  public static        double[]             measuredChassisVelocities    = new double[3];
   /**
    * Describes the desired forward, sideways and angular velocity of the robot.
    */
-  public static        double[]             desiredChassisSpeeds     = new double[3];
+  public static        double[]             desiredChassisVelocities     = new double[3];
   /**
    * Update the telemetry settings that infrequently change.
    */
@@ -365,7 +360,7 @@ public class SwerveDriveTelemetry
    */
   public static void endCtrlCycle()
   {
-    if (DriverStation.isTeleopEnabled() || DriverStation.isAutonomousEnabled() || DriverStation.isTestEnabled())
+    if (RobotState.isTeleopEnabled() || RobotState.isAutonomousEnabled() || RobotState.isUtilityEnabled())
     {
       // 100ms per module on initialization is normal
       ctrlCycleTime.set(ctrlTimer.get() * 1000);
@@ -394,7 +389,7 @@ public class SwerveDriveTelemetry
    */
   public static void endOdomCycle()
   {
-    if (DriverStation.isTeleopEnabled() || DriverStation.isAutonomousEnabled() || DriverStation.isTestEnabled())
+    if (RobotState.isTeleopEnabled() || RobotState.isAutonomousEnabled() || RobotState.isUtilityEnabled())
     {
       odomCycleTime.set(odomTimer.get() * 1000);
     }
@@ -427,33 +422,33 @@ public class SwerveDriveTelemetry
     {
       updateSwerveTelemetrySettings();
     }
-    measuredChassisSpeeds[0] = measuredChassisSpeedsObj.vxMetersPerSecond;
-    measuredChassisSpeeds[1] = measuredChassisSpeedsObj.vyMetersPerSecond;
-    measuredChassisSpeeds[2] = Math.toDegrees(measuredChassisSpeedsObj.omegaRadiansPerSecond);
+    measuredChassisVelocities[0] = measuredChassisVelocitiesObj.vx;
+    measuredChassisVelocities[1] = measuredChassisVelocitiesObj.vy;
+    measuredChassisVelocities[2] = Math.toDegrees(measuredChassisVelocitiesObj.omega);
 
-    desiredChassisSpeeds[0] = desiredChassisSpeedsObj.vxMetersPerSecond;
-    desiredChassisSpeeds[1] = desiredChassisSpeedsObj.vyMetersPerSecond;
-    desiredChassisSpeeds[2] = Math.toDegrees(desiredChassisSpeedsObj.omegaRadiansPerSecond);
+    desiredChassisVelocities[0] = desiredChassisVelocitiesObj.vx;
+    desiredChassisVelocities[1] = desiredChassisVelocitiesObj.vy;
+    desiredChassisVelocities[2] = Math.toDegrees(desiredChassisVelocitiesObj.omega);
 
     robotRotation = robotRotationObj.getDegrees();
 
     for (int i = 0; i < measuredStatesObj.length; i++)
     {
-      SwerveModuleState state = measuredStatesObj[i];
+      SwerveModuleVelocity state = measuredStatesObj[i];
       if (state != null)
       {
         measuredStates[i * 2] = state.angle.getDegrees();
-        measuredStates[i * 2 + 1] = state.speedMetersPerSecond;
+        measuredStates[i * 2 + 1] = state.velocity;
       }
     }
 
     for (int i = 0; i < desiredStatesObj.length; i++)
     {
-      SwerveModuleState state = desiredStatesObj[i];
+      SwerveModuleVelocity state = desiredStatesObj[i];
       if (state != null)
       {
         desiredStates[i * 2] = state.angle.getDegrees();
-        desiredStates[i * 2 + 1] = state.speedMetersPerSecond;
+        desiredStates[i * 2 + 1] = state.velocity;
       }
     }
 
@@ -463,13 +458,13 @@ public class SwerveDriveTelemetry
     robotRotationPublisher.set(robotRotation);
     maxAngularVelocityPublisher.set(maxAngularVelocity);
 
-    measuredChassisSpeedsArrayPublisher.set(measuredChassisSpeeds);
-    desiredChassisSpeedsArrayPublisher.set(desiredChassisSpeeds);
+    measuredChassisVelocitiesArrayPublisher.set(measuredChassisVelocities);
+    desiredChassisVelocitiesArrayPublisher.set(desiredChassisVelocities);
 
     desiredStatesStruct.set(desiredStatesObj);
     measuredStatesStruct.set(measuredStatesObj);
-    desiredChassisSpeedsStruct.set(desiredChassisSpeedsObj);
-    measuredChassisSpeedsStruct.set(measuredChassisSpeedsObj);
+    desiredChassisVelocitiesStruct.set(desiredChassisVelocitiesObj);
+    measuredChassisVelocitiesStruct.set(measuredChassisVelocitiesObj);
     robotRotationStruct.set(robotRotationObj);
   }
 

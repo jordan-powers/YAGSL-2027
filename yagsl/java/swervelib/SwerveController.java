@@ -1,9 +1,9 @@
 package swervelib;
 
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.filter.SlewRateLimiter;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import org.wpilib.math.controller.PIDController;
+import org.wpilib.math.filter.SlewRateLimiter;
+import org.wpilib.math.geometry.Translation2d;
+import org.wpilib.math.kinematics.ChassisVelocities;
 import swervelib.parser.SwerveControllerConfiguration;
 
 /**
@@ -53,14 +53,14 @@ public class SwerveController
   }
 
   /**
-   * Helper function to get the {@link Translation2d} of the chassis speeds given the {@link ChassisSpeeds}.
+   * Helper function to get the {@link Translation2d} of the chassis speeds given the {@link ChassisVelocities}.
    *
    * @param speeds Chassis speeds.
    * @return {@link Translation2d} of the speed the robot is going in.
    */
-  public static Translation2d getTranslation2d(ChassisSpeeds speeds)
+  public static Translation2d getTranslation2d(ChassisVelocities speeds)
   {
-    return new Translation2d(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond);
+    return new Translation2d(speeds.vx, speeds.vy);
   }
 
   /**
@@ -100,9 +100,9 @@ public class SwerveController
    * @param angle                      The desired angle of the robot in radians.
    * @param currentHeadingAngleRadians The current robot heading in radians.
    * @param maxSpeed                   Maximum speed in meters per second.
-   * @return {@link ChassisSpeeds} which can be sent to the Swerve Drive.
+   * @return {@link ChassisVelocities} which can be sent to the Swerve Drive.
    */
-  public ChassisSpeeds getTargetSpeeds(
+  public ChassisVelocities getTargetSpeeds(
       double xInput, double yInput, double angle, double currentHeadingAngleRadians, double maxSpeed)
   {
     // Convert joystick inputs to m/s by scaling by max linear speed.  Also uses a cubic function
@@ -138,9 +138,9 @@ public class SwerveController
    * @param currentHeadingAngleRadians The current robot heading in radians.
    * @param maxSpeed                   Maximum speed of the drive motors in meters per second, multiplier of the xInput
    *                                   and yInput.
-   * @return {@link ChassisSpeeds} which can be sent to the Swerve Drive.
+   * @return {@link ChassisVelocities} which can be sent to the Swerve Drive.
    */
-  public ChassisSpeeds getTargetSpeeds(
+  public ChassisVelocities getTargetSpeeds(
       double xInput,
       double yInput,
       double headingX,
@@ -155,7 +155,7 @@ public class SwerveController
     // position when stick released).
     double angle =
         withinHypotDeadband(headingX, headingY) ? lastAngleScalar : Math.atan2(headingX, headingY);
-    ChassisSpeeds speeds = getTargetSpeeds(xInput, yInput, angle, currentHeadingAngleRadians, maxSpeed);
+    ChassisVelocities speeds = getTargetSpeeds(xInput, yInput, angle, currentHeadingAngleRadians, maxSpeed);
 
     // Used for the position hold feature
     lastAngleScalar = angle;
@@ -164,14 +164,14 @@ public class SwerveController
   }
 
   /**
-   * Get the {@link ChassisSpeeds} based of raw speeds desired in meters/second and heading in radians.
+   * Get the {@link ChassisVelocities} based of raw speeds desired in meters/second and heading in radians.
    *
    * @param xSpeed X speed in meters per second.
    * @param ySpeed Y speed in meters per second.
    * @param omega  Angular velocity in radians/second.
-   * @return {@link ChassisSpeeds} the robot should move to.
+   * @return {@link ChassisVelocities} the robot should move to.
    */
-  public ChassisSpeeds getRawTargetSpeeds(double xSpeed, double ySpeed, double omega)
+  public ChassisVelocities getRawTargetSpeeds(double xSpeed, double ySpeed, double omega)
   {
     if (xLimiter != null)
     {
@@ -186,19 +186,19 @@ public class SwerveController
       omega = angleLimiter.calculate(omega);
     }
 
-    return new ChassisSpeeds(xSpeed, ySpeed, omega);
+    return new ChassisVelocities(xSpeed, ySpeed, omega);
   }
 
   /**
-   * Get the {@link ChassisSpeeds} based of raw speeds desired in meters/second and heading in radians.
+   * Get the {@link ChassisVelocities} based of raw speeds desired in meters/second and heading in radians.
    *
    * @param xSpeed                     X speed in meters per second.
    * @param ySpeed                     Y speed in meters per second.
    * @param targetHeadingAngleRadians  Target heading in radians.
    * @param currentHeadingAngleRadians Current heading in radians.
-   * @return {@link ChassisSpeeds} the robot should move to.
+   * @return {@link ChassisVelocities} the robot should move to.
    */
-  public ChassisSpeeds getRawTargetSpeeds(double xSpeed, double ySpeed, double targetHeadingAngleRadians,
+  public ChassisVelocities getRawTargetSpeeds(double xSpeed, double ySpeed, double targetHeadingAngleRadians,
                                           double currentHeadingAngleRadians)
   {
     // Calculates an angular rate using a PIDController and the commanded angle. Returns a value between -1 and 1
@@ -223,7 +223,7 @@ public class SwerveController
   /**
    * Set a new maximum angular velocity that is different from the auto-generated one. Modified the
    * {@link SwerveControllerConfiguration#maxAngularVelocity} field which is used in the {@link SwerveController} class
-   * for {@link ChassisSpeeds} generation.
+   * for {@link ChassisVelocities} generation.
    *
    * @param angularVelocity Angular velocity in radians per second.
    */

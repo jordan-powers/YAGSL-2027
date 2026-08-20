@@ -1,10 +1,13 @@
 package swervelib.encoders;
 
-import static edu.wpi.first.units.Units.DegreesPerSecond;
-import static edu.wpi.first.units.Units.Milliseconds;
-import static edu.wpi.first.units.Units.Rotations;
-import static edu.wpi.first.units.Units.Seconds;
+import static org.wpilib.units.Units.DegreesPerSecond;
+import static org.wpilib.units.Units.Milliseconds;
+import static org.wpilib.units.Units.Rotations;
+import static org.wpilib.units.Units.Seconds;
 
+import org.wpilib.driverstation.Alert;
+
+import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
@@ -12,10 +15,8 @@ import com.ctre.phoenix6.configs.CANcoderConfigurator;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.MagnetHealthValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
-import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.wpilibj.Alert;
-import edu.wpi.first.wpilibj.Alert.AlertType;
+import org.wpilib.units.measure.Angle;
+import org.wpilib.units.measure.AngularVelocity;
 
 /**
  * Swerve Absolute Encoder for CTRE CANCoders.
@@ -76,7 +77,7 @@ public class CANCoderSwerve extends SwerveAbsoluteEncoder
   public CANCoderSwerve(int id)
   {
     // Empty string uses the default canbus for the system
-    this(id, "");
+    this(id, 0);
   }
 
   /**
@@ -85,9 +86,9 @@ public class CANCoderSwerve extends SwerveAbsoluteEncoder
    * @param id     CAN ID of the {@link CANcoder}.
    * @param canbus CAN bus to initialize it on. Should be "rio" or "" if the RIO CANbus, else is the CANivore name.
    */
-  public CANCoderSwerve(int id, String canbus)
+  public CANCoderSwerve(int id, int canbus)
   {
-    encoder = new CANcoder(id, canbus);
+    encoder = new CANcoder(id, CANBus.systemcore(canbus));
     config = encoder.getConfigurator();
     magnetHealth = encoder.getMagnetHealth();
     angle = encoder.getAbsolutePosition();
@@ -95,21 +96,21 @@ public class CANCoderSwerve extends SwerveAbsoluteEncoder
     magnetFieldLessThanIdeal = new Alert(
         "Encoders",
         "CANCoder " + encoder.getDeviceID() + " magnetic field is less than ideal.",
-        AlertType.kWarning);
+        Alert.Level.MEDIUM);
     readingFaulty = new Alert(
         "Encoders",
         "CANCoder " + encoder.getDeviceID() + " reading was faulty.",
-        AlertType.kWarning);
+        Alert.Level.MEDIUM);
     readingIgnored = new Alert(
         "Encoders",
         "CANCoder " + encoder.getDeviceID() + " reading was faulty, ignoring.",
-        AlertType.kWarning);
+        Alert.Level.MEDIUM);
     cannotSetOffset = new Alert(
         "Encoders",
         "Failure to set CANCoder "
         + encoder.getDeviceID()
         + " Absolute Encoder Offset",
-        AlertType.kWarning);
+        Alert.Level.MEDIUM);
   }
 
   @Override

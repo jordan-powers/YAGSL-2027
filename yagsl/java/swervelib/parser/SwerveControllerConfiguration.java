@@ -30,7 +30,7 @@ public class SwerveControllerConfiguration
    * @param headingPIDF                 Heading PIDF configuration.
    * @param angleJoyStickRadiusDeadband Deadband on radius of angle joystick.
    * @param maxSpeedMPS                 Maximum speed in meters per second for angular velocity, remember if you have
-   *                                    feet per second use {@link edu.wpi.first.math.util.Units#feetToMeters(double)}.
+   *                                    feet per second use {@link org.wpilib.math.util.Units#feetToMeters(double)}.
    */
   public SwerveControllerConfiguration(
       SwerveDriveConfiguration driveCfg,
@@ -54,7 +54,7 @@ public class SwerveControllerConfiguration
    * @param driveCfg    Drive configuration.
    * @param headingPIDF Heading PIDF configuration.
    * @param maxSpeedMPS Maximum speed in meters per second for angular velocity, remember if you have feet per second
-   *                    use {@link edu.wpi.first.math.util.Units#feetToMeters(double)}.
+   *                    use {@link org.wpilib.math.util.Units#feetToMeters(double)}.
    */
   public SwerveControllerConfiguration(SwerveDriveConfiguration driveCfg, PIDFConfig headingPIDF, double maxSpeedMPS)
   {

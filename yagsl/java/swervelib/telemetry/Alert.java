@@ -1,13 +1,18 @@
 package swervelib.telemetry;
 
-import edu.wpi.first.wpilibj.Alert.AlertType;
-import edu.wpi.first.wpilibj.DriverStation;
+import org.wpilib.driverstation.DriverStationErrors;
 
 /**
  * Thread-safe psuedo-Alert class
  */
 public class Alert
 {
+    public enum AlertType {
+        kInfo,
+        kWarning,
+        kError;
+    }
+
 
   /**
    * Group of the alert
@@ -20,7 +25,7 @@ public class Alert
   /**
    * Type of the alert
    */
-  public final AlertType type;
+  public final Alert.AlertType type;
   private      boolean   toggle = false;
 
   /**
@@ -30,7 +35,7 @@ public class Alert
    * @param text  Text of the alert
    * @param type  Type of the alert
    */
-  public Alert(String group, String text, AlertType type)
+  public Alert(String group, String text, Alert.AlertType type)
   {
     this.group = group;
     this.text = text;
@@ -43,7 +48,7 @@ public class Alert
    * @param text Text of the alert
    * @param type Type of the alert
    */
-  public Alert(String text, AlertType type)
+  public Alert(String text, Alert.AlertType type)
   {
     this("", text, type);
   }
@@ -63,11 +68,11 @@ public class Alert
       switch (type)
       {
         case kError:
-          DriverStation.reportError(msg, toggle);
+          DriverStationErrors.reportError(msg, toggle);
           break;
         case kInfo:
         case kWarning:
-          DriverStation.reportWarning(msg, toggle);
+          DriverStationErrors.reportWarning(msg, toggle);
           break;
       }
     }

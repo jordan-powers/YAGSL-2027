@@ -1,6 +1,6 @@
 package swervelib.parser;
 
-import edu.wpi.first.math.geometry.Translation2d;
+import org.wpilib.math.geometry.Translation2d;
 import swervelib.encoders.SwerveAbsoluteEncoder;
 import swervelib.motors.SwerveMotor;
 import swervelib.parser.json.modules.ConversionFactorsJson;

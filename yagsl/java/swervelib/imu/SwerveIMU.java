@@ -1,8 +1,8 @@
 package swervelib.imu;
 
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.units.measure.MutAngularVelocity;
+import org.wpilib.math.geometry.Rotation3d;
+import org.wpilib.math.geometry.Translation3d;
+import org.wpilib.units.measure.AngularVelocity;
 import java.util.Optional;
 
 /**
@@ -65,7 +65,7 @@ public abstract class SwerveIMU implements AutoCloseable
    *
    * @return {@link MutAngularVelocity} of the rotation rate.
    */
-  public abstract MutAngularVelocity getYawAngularVelocity();
+  public abstract AngularVelocity getYawAngularVelocity();
 
   /**
    * Get the instantiated IMU object.

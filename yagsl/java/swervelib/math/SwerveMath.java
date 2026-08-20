@@ -1,13 +1,13 @@
 package swervelib.math;
 
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.math.geometry.Twist2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
+import org.wpilib.math.controller.SimpleMotorFeedforward;
+import org.wpilib.math.geometry.Pose2d;
+import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.math.geometry.Translation2d;
+import org.wpilib.math.geometry.Translation3d;
+import org.wpilib.math.geometry.Twist2d;
+import org.wpilib.math.kinematics.ChassisVelocities;
+import org.wpilib.math.kinematics.SwerveModuleVelocity;
 import java.util.List;
 import swervelib.SwerveController;
 import swervelib.SwerveModule;
@@ -285,7 +285,7 @@ public class SwerveMath
    */
   public static Translation2d limitVelocity(
       Translation2d commandedVelocity,
-      ChassisSpeeds fieldVelocity,
+      ChassisVelocities fieldVelocity,
       Pose2d robotPose,
       double loopTime,
       double robotMass,
@@ -379,13 +379,13 @@ public class SwerveMath
   /**
    * Perform anti-jitter within modules if the speed requested is too low.
    *
-   * @param moduleState     Current {@link SwerveModuleState} requested.
-   * @param lastModuleState Previous {@link SwerveModuleState} used.
+   * @param moduleState     Current {@link SwerveModuleVelocity} requested.
+   * @param lastModuleState Previous {@link SwerveModuleVelocity} used.
    * @param maxSpeed        Maximum speed of the modules.
    */
-  public static void antiJitter(SwerveModuleState moduleState, SwerveModuleState lastModuleState, double maxSpeed)
+  public static void antiJitter(SwerveModuleVelocity moduleState, SwerveModuleVelocity lastModuleState, double maxSpeed)
   {
-    if (Math.abs(moduleState.speedMetersPerSecond) <= (maxSpeed * 0.01))
+    if (Math.abs(moduleState.velocity) <= (maxSpeed * 0.01))
     {
       moduleState.angle = lastModuleState.angle;
     }

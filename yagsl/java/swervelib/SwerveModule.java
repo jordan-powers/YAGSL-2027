@@ -1,32 +1,26 @@
 package swervelib;
 
-import static edu.wpi.first.units.Units.InchesPerSecond;
-import static edu.wpi.first.units.Units.MetersPerSecond;
-import static edu.wpi.first.units.Units.RadiansPerSecond;
-import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static org.wpilib.units.Units.InchesPerSecond;
+import static org.wpilib.units.Units.MetersPerSecond;
+import static org.wpilib.units.Units.RadiansPerSecond;
+import static org.wpilib.units.Units.RotationsPerSecond;
 
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.SwerveModulePosition;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.networktables.BooleanPublisher;
-import edu.wpi.first.networktables.DoublePublisher;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.units.measure.LinearVelocity;
-import edu.wpi.first.wpilibj.Alert.AlertType;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import swervelib.encoders.SparkMaxEncoderSwerve;
+import org.wpilib.math.controller.SimpleMotorFeedforward;
+import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.math.kinematics.SwerveModulePosition;
+import org.wpilib.math.kinematics.SwerveModuleVelocity;
+import org.wpilib.networktables.BooleanPublisher;
+import org.wpilib.networktables.DoublePublisher;
+import org.wpilib.networktables.NetworkTableInstance;
+import org.wpilib.units.measure.AngularVelocity;
+import org.wpilib.units.measure.LinearVelocity;
 import swervelib.encoders.SwerveAbsoluteEncoder;
 import swervelib.math.SwerveMath;
-import swervelib.motors.SparkMaxBrushedMotorSwerve;
-import swervelib.motors.SparkMaxSwerve;
 import swervelib.motors.SwerveMotor;
 import swervelib.parser.Cache;
 import swervelib.parser.PIDFConfig;
 import swervelib.parser.SwerveModuleConfiguration;
 import swervelib.parser.SwerveModulePhysicalCharacteristics;
-import swervelib.simulation.SwerveModuleSimulation;
 import swervelib.telemetry.Alert;
 import swervelib.telemetry.SwerveDriveTelemetry;
 import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
@@ -77,25 +71,25 @@ public class SwerveModule implements AutoCloseable
    * An {@link Alert} for if there is no Absolute Encoder on the module.
    */
   private final Alert            externalSensorIsNull         = new Alert("No absolute Encoder found.",
-                                                                          AlertType.kError);
+                                                                          Alert.AlertType.kError);
   /**
    * An {@link Alert} for if the offset is 0 degrees.
    */
   private final Alert            internalOffsetIsZero         = new Alert(
       "Absolute encoder offset is 0, this may be a problem.",
-      AlertType.kWarning);
+      Alert.AlertType.kWarning);
   /**
    * An {@link Alert} for if the angle/steer/azimuth motor is incompatible with the absolute encoder.
    */
   private final Alert            externalFeedbackIncompatible = new Alert(
       "Absolute encoder is incompatible, cannot set as an external feedback device.",
-      AlertType.kError);
+      Alert.AlertType.kError);
   /**
    * An {@link Alert} for if the absolute encoder cannot set an offset.
    */
   private final Alert            externalOffsetIncompatible   = new Alert(
       "Absolute encoder is incompatible, cannot set an offset internally.",
-      AlertType.kError);
+      Alert.AlertType.kError);
   /**
    * NT4 Raw Absolute Angle publisher for the absolute encoder.
    */
@@ -151,19 +145,15 @@ public class SwerveModule implements AutoCloseable
   /**
    * Last swerve module state applied.
    */
-  private       SwerveModuleState      lastState;
+  private       SwerveModuleVelocity      lastState;
   /**
    * Angle offset from the absolute encoder.
    */
   private       double                 angleOffset;
   /**
-   * Simulated swerve module.
+   * Enables utilization off {@link SwerveModuleVelocity#optimize(Rotation2d)}
    */
-  private       SwerveModuleSimulation simModule;
-  /**
-   * Enables utilization off {@link SwerveModuleState#optimize(Rotation2d)}
-   */
-  private       boolean          optimizeSwerveModuleState    = true;
+  private       boolean          optimizeSwerveModuleVelocity    = true;
   /**
    * Encoder synchronization queued.
    */
@@ -219,11 +209,6 @@ public class SwerveModule implements AutoCloseable
       absoluteEncoder.configure(moduleConfiguration.absoluteEncoderInverted);
     }
 
-    if (SwerveDriveTelemetry.isSimulation)
-    {
-      simModule = new SwerveModuleSimulation();
-    }
-
     // Setup the cache for the absolute encoder position.
     absolutePositionCache = new Cache<>(this::getRawAbsolutePosition, 20);
 
@@ -266,11 +251,11 @@ public class SwerveModule implements AutoCloseable
     noEncoderWarning = new Alert("Motors",
                                  "There is no Absolute Encoder on module #" +
                                  moduleNumber,
-                                 AlertType.kWarning);
+                                 Alert.AlertType.kWarning);
     encoderOffsetWarning = new Alert("Motors",
                                      "Pushing the Absolute Encoder offset to the encoder failed on module #" +
                                      moduleNumber,
-                                     AlertType.kWarning);
+                                     Alert.AlertType.kWarning);
 
     rawAbsoluteAnglePublisher = NetworkTableInstance.getDefault().getTable("SmartDashboard").getDoubleTopic(
         "swerve/modules/" + configuration.name + "/Raw Absolute Encoder").publish();
@@ -305,7 +290,7 @@ public class SwerveModule implements AutoCloseable
    */
   public SimpleMotorFeedforward getDefaultFeedforward()
   {
-    double nominalVoltage   = driveMotor.getSimMotor().nominalVoltageVolts;
+    double nominalVoltage   = driveMotor.getSimMotor().nominalVoltage;
     double maxDriveSpeedMPS = getMaxVelocity().in(MetersPerSecond);
     return SwerveMath.createDriveFeedforward(nominalVoltage,
                                              maxDriveSpeedMPS,
@@ -313,14 +298,14 @@ public class SwerveModule implements AutoCloseable
   }
 
   /**
-   * Set utilization of {@link SwerveModuleState#optimize(Rotation2d)} which should be disabled for some debugging.
+   * Set utilization of {@link SwerveModuleVelocity#optimize(Rotation2d)} which should be disabled for some debugging.
    *
    * @param optimizationState Optimization enabled.
    */
   public void setModuleStateOptimization(boolean optimizationState)
   {
-    optimizeSwerveModuleState = optimizationState;
-    if (!optimizeSwerveModuleState)
+    optimizeSwerveModuleVelocity = optimizationState;
+    if (!optimizeSwerveModuleVelocity)
     {
       angleMotor.disablePIDWrapping();
       angleMotor.burnFlash();
@@ -328,13 +313,13 @@ public class SwerveModule implements AutoCloseable
   }
 
   /**
-   * Check if the module state optimization used by {@link SwerveModuleState#optimize(Rotation2d)} is enabled.
+   * Check if the module state optimization used by {@link SwerveModuleVelocity#optimize(Rotation2d)} is enabled.
    *
    * @return optimization state.
    */
   public boolean getModuleStateOptimization()
   {
-    return optimizeSwerveModuleState;
+    return optimizeSwerveModuleVelocity;
   }
 
   /**
@@ -472,7 +457,7 @@ public class SwerveModule implements AutoCloseable
    * @param force        Disables optimizations that prevent movement in the angle motor and forces the desired state
    *                     onto the swerve module.
    */
-  public void setDesiredState(SwerveModuleState desiredState, boolean isOpenLoop, boolean force)
+  public void setDesiredState(SwerveModuleVelocity desiredState, boolean isOpenLoop, boolean force)
   {
     applyStateOptimizations(desiredState);
     applyAntiJitter(desiredState, force);
@@ -480,13 +465,13 @@ public class SwerveModule implements AutoCloseable
     // Cosine compensation.
     double nextVelocityMetersPerSecond = configuration.useCosineCompensator
                                          ? getCosineCompensatedVelocity(desiredState)
-                                         : desiredState.speedMetersPerSecond;
-    double curVelocityMetersPerSecond = lastState.speedMetersPerSecond;
-    desiredState.speedMetersPerSecond = nextVelocityMetersPerSecond;
+                                         : desiredState.velocity;
+    double curVelocityMetersPerSecond = lastState.velocity;
+    desiredState.velocity = nextVelocityMetersPerSecond;
 
     setDesiredState(desiredState,
                     isOpenLoop,
-                    driveMotorFeedforward.calculateWithVelocities(curVelocityMetersPerSecond,
+                    driveMotorFeedforward.calculate(curVelocityMetersPerSecond,
                                                                   nextVelocityMetersPerSecond));
   }
 
@@ -498,16 +483,16 @@ public class SwerveModule implements AutoCloseable
    * @param isOpenLoop              Whether to use open loop (direct percent) or direct velocity control.
    * @param driveFeedforwardVoltage Drive motor controller feedforward as a voltage.
    */
-  public void setDesiredState(SwerveModuleState desiredState, boolean isOpenLoop,
+  public void setDesiredState(SwerveModuleVelocity desiredState, boolean isOpenLoop,
                               double driveFeedforwardVoltage)
   {
     if (isOpenLoop)
     {
-      double percentOutput = desiredState.speedMetersPerSecond / maxDriveVelocity.in(MetersPerSecond);
+      double percentOutput = desiredState.velocity / maxDriveVelocity.in(MetersPerSecond);
       driveMotor.setVoltage(percentOutput * 12);
     } else
     {
-      driveMotor.setReference(desiredState.speedMetersPerSecond, driveFeedforwardVoltage);
+      driveMotor.setReference(desiredState.velocity, driveFeedforwardVoltage);
     }
 
     // Prevent module rotation if angle is the same as the previous angle.
@@ -528,11 +513,6 @@ public class SwerveModule implements AutoCloseable
 
     lastState = desiredState;
 
-    if (SwerveDriveTelemetry.isSimulation)
-    {
-      simModule.updateStateAndPosition(desiredState);
-    }
-
     // TODO: Change and move to SwerveDriveTelemetry
     if (SwerveDriveTelemetry.verbosity.ordinal() >= TelemetryVerbosity.INFO.ordinal())
     {
@@ -541,7 +521,7 @@ public class SwerveModule implements AutoCloseable
 
     if (SwerveDriveTelemetry.verbosity == TelemetryVerbosity.HIGH)
     {
-      speedSetpointPublisher.set(desiredState.speedMetersPerSecond);
+      speedSetpointPublisher.set(desiredState.velocity);
       angleSetpointPublisher.set(desiredState.angle.getDegrees());
     }
 
@@ -554,10 +534,10 @@ public class SwerveModule implements AutoCloseable
   /**
    * Get the cosine compensated velocity to set the swerve module to.
    *
-   * @param desiredState Desired {@link SwerveModuleState} to use.
+   * @param desiredState Desired {@link SwerveModuleVelocity} to use.
    * @return Cosine compensated velocity in meters/second.
    */
-  private double getCosineCompensatedVelocity(SwerveModuleState desiredState)
+  private double getCosineCompensatedVelocity(SwerveModuleVelocity desiredState)
   {
     double cosineScalar = 1.0;
     // Taken from the CTRE SwerveModule class.
@@ -575,19 +555,19 @@ public class SwerveModule implements AutoCloseable
       cosineScalar = 1;
     }
 
-    return desiredState.speedMetersPerSecond * cosineScalar;
+    return desiredState.velocity * cosineScalar;
   }
 
   /**
-   * Apply the {@link SwerveModuleState#optimize(Rotation2d)} function if the module state optimization is enabled while
+   * Apply the {@link SwerveModuleVelocity#optimize(Rotation2d)} function if the module state optimization is enabled while
    * debugging.
    *
    * @param desiredState The desired state to apply the optimization to.
    */
-  public void applyStateOptimizations(SwerveModuleState desiredState)
+  public void applyStateOptimizations(SwerveModuleVelocity desiredState)
   {
-    // SwerveModuleState optimization might be desired to be disabled while debugging.
-    if (optimizeSwerveModuleState)
+    // SwerveModuleVelocity optimization might be desired to be disabled while debugging.
+    if (optimizeSwerveModuleVelocity)
     {
       desiredState.optimize(Rotation2d.fromDegrees(getAbsolutePosition()));
     }
@@ -601,7 +581,7 @@ public class SwerveModule implements AutoCloseable
    * @param force        Whether to ignore the {@link SwerveModule#antiJitterEnabled} state and apply the anti-jitter
    *                     anyway.
    */
-  public void applyAntiJitter(SwerveModuleState desiredState, boolean force)
+  public void applyAntiJitter(SwerveModuleVelocity desiredState, boolean force)
   {
     if (!force && antiJitterEnabled)
     {
@@ -626,19 +606,13 @@ public class SwerveModule implements AutoCloseable
    *
    * @return Current SwerveModule state.
    */
-  public SwerveModuleState getState()
+  public SwerveModuleVelocity getState()
   {
     double     velocity;
     Rotation2d azimuth;
-    if (!SwerveDriveTelemetry.isSimulation)
-    {
-      velocity = driveVelocityCache.getValue();
-      azimuth = Rotation2d.fromDegrees(getAbsolutePosition());
-    } else
-    {
-      return simModule.getState();
-    }
-    return new SwerveModuleState(velocity, azimuth);
+    velocity = driveVelocityCache.getValue();
+    azimuth = Rotation2d.fromDegrees(getAbsolutePosition());
+    return new SwerveModuleVelocity(velocity, azimuth);
   }
 
   /**
@@ -650,14 +624,8 @@ public class SwerveModule implements AutoCloseable
   {
     double     position;
     Rotation2d azimuth;
-    if (!SwerveDriveTelemetry.isSimulation)
-    {
-      position = drivePositionCache.getValue();
-      azimuth = Rotation2d.fromDegrees(getAbsolutePosition());
-    } else
-    {
-      return simModule.getPosition();
-    }
+    position = drivePositionCache.getValue();
+    azimuth = Rotation2d.fromDegrees(getAbsolutePosition());
     return new SwerveModulePosition(position, azimuth);
   }
 
@@ -678,13 +646,6 @@ public class SwerveModule implements AutoCloseable
    */
   public double getRawAbsolutePosition()
   {
-    /* During simulation, when no absolute encoders are available, we return the state from the simulation module instead. */
-    if (SwerveDriveTelemetry.isSimulation)
-    {
-      Rotation2d absolutePosition = simModule.getState().angle;
-      return absolutePosition.getDegrees();
-    }
-
     double angle;
     if (absoluteEncoder != null)
     {
@@ -697,7 +658,7 @@ public class SwerveModule implements AutoCloseable
     {
       angle = getRelativePosition();
     }
-    if (optimizeSwerveModuleState)
+    if (optimizeSwerveModuleVelocity)
     {
       angle %= 360;
       if (angle < 0.0)
@@ -851,26 +812,7 @@ public class SwerveModule implements AutoCloseable
   @Deprecated
   public void pushOffsetsToEncoders()
   {
-    if (absoluteEncoder != null && angleOffset == configuration.angleOffset)
-    {
-      // If the absolute encoder is attached.
-      if (angleMotor instanceof SparkMaxSwerve || angleMotor instanceof SparkMaxBrushedMotorSwerve)
-      {
-        if (absoluteEncoder instanceof SparkMaxEncoderSwerve)
-        {
-          angleMotor.setAbsoluteEncoder(absoluteEncoder);
-          if (absoluteEncoder.setAbsoluteEncoderOffset(angleOffset))
-          {
-            angleOffset = 0;
-          } else
-          {
-            angleMotor.setAbsoluteEncoder(null);
-            encoderOffsetWarning.set(true);
-          }
-        }
-      }
-
-    } else
+    if (!(absoluteEncoder != null && angleOffset == configuration.angleOffset))
     {
       noEncoderWarning.set(true);
     }
@@ -924,7 +866,7 @@ public class SwerveModule implements AutoCloseable
     if (maxDriveVelocity == null)
     {
       maxDriveVelocity = InchesPerSecond.of(
-          (driveMotor.getSimMotor().freeSpeedRadPerSec /
+          (driveMotor.getSimMotor().freeSpeed /
            configuration.conversionFactors.drive.gearRatio) *
           configuration.conversionFactors.drive.diameter / 2.0);
       maxDriveVelocityMetersPerSecond = maxDriveVelocity.in(MetersPerSecond);
@@ -942,7 +884,7 @@ public class SwerveModule implements AutoCloseable
     if (maxAngularVelocity == null)
     {
       maxAngularVelocity = RotationsPerSecond.of(
-          RadiansPerSecond.of(angleMotor.getSimMotor().freeSpeedRadPerSec).in(RotationsPerSecond) /
+          RadiansPerSecond.of(angleMotor.getSimMotor().freeSpeed).in(RotationsPerSecond) /
           configuration.conversionFactors.angle.gearRatio);
     }
     return maxAngularVelocity;
@@ -957,23 +899,10 @@ public class SwerveModule implements AutoCloseable
     {
       rawAbsoluteAnglePublisher.set(absoluteEncoder.getAbsolutePosition());
     }
-    if (SwerveDriveTelemetry.isSimulation && SwerveDriveTelemetry.verbosity == TelemetryVerbosity.HIGH)
-    {
-      SwerveModulePosition pos   = simModule.getPosition();
-      SwerveModuleState    state = simModule.getState();
-      rawAnglePublisher.set(pos.angle.getDegrees());
-      rawDriveEncoderPublisher.set(pos.distanceMeters);
-      rawDriveVelocityPublisher.set(state.speedMetersPerSecond);
-      // For code coverage
-      angleMotor.getPosition();
-      drivePositionCache.getValue();
-      driveVelocityCache.getValue();
-    } else
-    {
-      rawAnglePublisher.set(angleMotor.getPosition());
-      rawDriveEncoderPublisher.set(drivePositionCache.getValue());
-      rawDriveVelocityPublisher.set(driveVelocityCache.getValue());
-    }
+
+    rawAnglePublisher.set(angleMotor.getPosition());
+    rawDriveEncoderPublisher.set(drivePositionCache.getValue());
+    rawDriveVelocityPublisher.set(driveVelocityCache.getValue());
     adjAbsoluteAnglePublisher.set(getAbsolutePosition());
     absoluteEncoderIssuePublisher.set(getAbsoluteEncoderReadIssue());
 
@@ -987,30 +916,5 @@ public class SwerveModule implements AutoCloseable
     absolutePositionCache.update();
     drivePositionCache.update();
     driveVelocityCache.update();
-  }
-
-  /**
-   * Obtains the {@link SwerveModuleSimulation} used in simulation.
-   *
-   * @return the module simulation, <b>null</b> if this method is called on a real robot
-   */
-  public SwerveModuleSimulation getSimModule()
-  {
-    return simModule;
-  }
-
-  /**
-   * Configure the {@link SwerveModule#simModule} with the MapleSim
-   * {@link swervelib.simulation.ironmaple.simulation.drivesims.SwerveModuleSimulation}
-   *
-   * @param swerveModuleSimulation  MapleSim {@link swervelib.simulation.ironmaple.simulation.drivesims.SwerveModuleSimulation} to
-   *                                configure with.
-   * @param physicalCharacteristics {@link SwerveModulePhysicalCharacteristics} that represent the swerve drive.
-   */
-  public void configureModuleSimulation(
-      swervelib.simulation.ironmaple.simulation.drivesims.SwerveModuleSimulation swerveModuleSimulation,
-      SwerveModulePhysicalCharacteristics physicalCharacteristics)
-  {
-    this.simModule.configureSimModule(swerveModuleSimulation, physicalCharacteristics);
   }
 }

@@ -1,10 +1,8 @@
 package swervelib.parser;
 
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.system.plant.DCMotor;
+import org.wpilib.math.geometry.Translation2d;
+import org.wpilib.math.system.DCMotor;
 import java.util.function.Supplier;
-import swervelib.simulation.ironmaple.simulation.drivesims.COTS;
-import swervelib.simulation.ironmaple.simulation.drivesims.GyroSimulation;
 import swervelib.SwerveModule;
 import swervelib.imu.SwerveIMU;
 import swervelib.math.SwerveMath;
@@ -141,16 +139,6 @@ public class SwerveDriveConfiguration
   {
     SwerveModuleConfiguration fl = SwerveMath.getSwerveModule(modules, true, true);
     return fl.angleMotor.getSimMotor();
-  }
-
-  /**
-   * Get the gyro simulation for the robot.
-   *
-   * @return {@link GyroSimulation} gyro simulation.
-   */
-  public Supplier<GyroSimulation> getGyroSim()
-  {
-    return COTS.ofGenericGyro();
   }
 
 }

@@ -1,7 +1,7 @@
 package swervelib.parser.json;
 
-import static edu.wpi.first.units.Units.Kilogram;
-import static edu.wpi.first.units.Units.Pounds;
+import static org.wpilib.units.Units.Kilogram;
+import static org.wpilib.units.Units.Pounds;
 
 import swervelib.parser.SwerveModulePhysicalCharacteristics;
 import swervelib.parser.json.modules.ConversionFactorsJson;

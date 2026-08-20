@@ -1,6 +1,6 @@
 package swervelib.math;
 
-import edu.wpi.first.math.geometry.Translation3d;
+import org.wpilib.math.geometry.Translation3d;
 
 /**
  * Object with significant mass that needs to be taken into account.

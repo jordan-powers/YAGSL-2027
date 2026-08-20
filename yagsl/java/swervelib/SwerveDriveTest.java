@@ -1,62 +1,34 @@
 package swervelib;
 
-import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.DegreesPerSecond;
-import static edu.wpi.first.units.Units.Meter;
-import static edu.wpi.first.units.Units.Meters;
-import static edu.wpi.first.units.Units.MetersPerSecond;
-import static edu.wpi.first.units.Units.Seconds;
-import static edu.wpi.first.units.Units.Volts;
+import static org.wpilib.units.Units.Degrees;
+import static org.wpilib.units.Units.DegreesPerSecond;
+import static org.wpilib.units.Units.Meters;
+import static org.wpilib.units.Units.MetersPerSecond;
+import static org.wpilib.units.Units.Seconds;
+import static org.wpilib.units.Units.Volts;
 
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.units.measure.MutAngle;
-import edu.wpi.first.units.measure.MutAngularVelocity;
-import edu.wpi.first.units.measure.MutDistance;
-import edu.wpi.first.units.measure.MutLinearVelocity;
-import edu.wpi.first.units.measure.MutVoltage;
-import edu.wpi.first.units.measure.Voltage;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.RobotController;
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.sysid.SysIdRoutineLog;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
+import org.wpilib.command2.Command;
+import org.wpilib.command2.Commands;
+import org.wpilib.command2.SubsystemBase;
+import org.wpilib.command2.sysid.SysIdRoutine;
+import org.wpilib.command2.sysid.SysIdRoutine.Config;
+import org.wpilib.driverstation.DriverStationErrors;
+import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.math.kinematics.ChassisVelocities;
+import org.wpilib.math.kinematics.SwerveModuleVelocity;
+import org.wpilib.smartdashboard.SmartDashboard;
+import org.wpilib.sysid.SysIdRoutineLog;
+import org.wpilib.system.RobotController;
+import org.wpilib.system.Timer;
+import org.wpilib.units.measure.Voltage;
 import java.util.function.Supplier;
 import swervelib.encoders.SwerveAbsoluteEncoder;
-import swervelib.telemetry.SwerveDriveTelemetry;
 
 /**
  * Class to perform tests on the swerve drive.
  */
 public class SwerveDriveTest
 {
-
-  /**
-   * Tracks the voltage being applied to a motor
-   */
-  private static final MutVoltage         m_appliedVoltage = new MutVoltage(0, 0, Volts);
-  /**
-   * Tracks the distance travelled of a position motor
-   */
-  private static final MutDistance        m_distance       = new MutDistance(0, 0, Meter);
-  /**
-   * Tracks the velocity of a positional motor
-   */
-  private static final MutLinearVelocity  m_velocity       = new MutLinearVelocity(0, 9, MetersPerSecond);
-  /**
-   * Tracks the rotations of an angular motor
-   */
-  private static final MutAngle           m_anglePosition  = new MutAngle(0, 0, Degrees);
-  /**
-   * Tracks the velocity of an angular motor
-   */
-  private static final MutAngularVelocity m_angVelocity    = new MutAngularVelocity(0, 0, DegreesPerSecond);
 
   /**
    * Set the angle of the modules to a given {@link Rotation2d}
@@ -145,52 +117,13 @@ public class SwerveDriveTest
    */
   public static void setModulesToRotaryPosition(SwerveDrive swerveDrive)
   {
-    SwerveModuleState[] rotaryStates = swerveDrive.kinematics.toSwerveModuleStates(new ChassisSpeeds(0, 0, 1));
+    SwerveModuleVelocity[] rotaryStates = swerveDrive.kinematics.toSwerveModuleVelocities(new ChassisVelocities(0, 0, 1));
     for (int i = 0; i < swerveDrive.getModules().length; i++)
     {
       swerveDrive.getModules()[i].getAngleMotor().setReference(rotaryStates[i].angle.getDegrees(), 0);
     }
   }
 
-  /**
-   * Set the sim modules to center to 0 and power them to drive in a voltage. Calling this function in sim is equivalent
-   * to calling {@link #centerModules(SwerveDrive)} and {@link #powerDriveMotorsVoltage(SwerveDrive, double)} on a real
-   * robot.
-   *
-   * @param swerveDrive      {@link SwerveDrive} to control.
-   * @param volts            Voltage to send to drive motors.
-   * @param testWithSpinning - Whether to make the robot spin in place instead of driving in a straight line, true to
-   *                         make the robot spin, false to make the robot drive in straight line
-   */
-  public static void runDriveMotorsCharacterizationOnSimModules(SwerveDrive swerveDrive, double volts,
-                                                                boolean testWithSpinning)
-  {
-    SwerveModuleState[] rotaryStates = swerveDrive.kinematics.toSwerveModuleStates(new ChassisSpeeds(0, 0, 1));
-    for (int i = 0; i < swerveDrive.getModules().length; i++)
-    {
-      swerveDrive.getModules()[i].getSimModule().runDriveMotorCharacterization(
-          testWithSpinning
-          ? rotaryStates[i].angle
-          : Rotation2d.kZero,
-          volts);
-    }
-  }
-
-  /**
-   * Set the sim modules to center to 0 and power them to drive in a voltage. Calling this function in sim is equivalent
-   * to calling {@link #centerModules(SwerveDrive)} and {@link #powerDriveMotorsVoltage(SwerveDrive, double)} on a real
-   * robot.
-   *
-   * @param swerveDrive {@link SwerveDrive} to control.
-   * @param volts       Voltage to send to angle motors.
-   */
-  public static void runAngleMotorsCharacterizationOnSimModules(SwerveDrive swerveDrive, double volts)
-  {
-    for (SwerveModule module : swerveDrive.getModules())
-    {
-      module.getSimModule().runAngleMotorCharacterization(volts);
-    }
-  }
 
   /**
    * Find the minimum amount of power required to move the swerve drive motors.
@@ -219,8 +152,8 @@ public class SwerveDriveTest
 
       SwerveDriveTest.powerDriveMotorsVoltage(swerveDrive, kV);
       boolean foundkV          = false;
-      double  startTimeSeconds = Timer.getFPGATimestamp();
-      while ((Timer.getFPGATimestamp() - startTimeSeconds) < testDelaySeconds && !foundkV)
+      double  startTimeSeconds = Timer.getMonotonicTimestamp();
+      while ((Timer.getMonotonicTimestamp() - startTimeSeconds) < testDelaySeconds && !foundkV)
       {
         for (int i = 0; i < modules.length; i++)
         {
@@ -282,7 +215,7 @@ public class SwerveDriveTest
         module.getAngleMotor().setVoltage(0);
       } else
       {
-        DriverStation.reportWarning(
+        DriverStationErrors.reportWarning(
             "Spin the " + module.configuration.name + " module 360 degrees now, you have 1 minute.\n",
             false);
         Timer.delay(60);
@@ -290,10 +223,10 @@ public class SwerveDriveTest
       double couplingRatio =
           (module.getDriveMotor().getPosition() / module.configuration.conversionFactors.drive.factor) -
           driveEncoderPositionRotations;
-      DriverStation.reportWarning(module.configuration.name + " Coupling Ratio: " + couplingRatio, false);
+      DriverStationErrors.reportWarning(module.configuration.name + " Coupling Ratio: " + couplingRatio, false);
       couplingRatioSum += couplingRatio;
     }
-    DriverStation.reportWarning("Average Coupling Ratio: " + (couplingRatioSum / 4.0), false);
+    DriverStationErrors.reportWarning("Average Coupling Ratio: " + (couplingRatioSum / 4.0), false);
     return (couplingRatioSum / 4.0);
   }
 
@@ -342,15 +275,15 @@ public class SwerveDriveTest
   public static void logDriveMotorActivity(SwerveModule module, SysIdRoutineLog log, Supplier<Double> powerSupplied)
   {
     double power    = powerSupplied.get();
-    double distance = module.getPosition().distanceMeters;
+    double distance = module.getPosition().distance;
     double velocity = module.getDriveMotor().getVelocity();
     SmartDashboard.putNumber("swerve/modules/" + module.configuration.name + "/SysId Drive Power", power);
     SmartDashboard.putNumber("swerve/modules/" + module.configuration.name + "/SysId Drive Position", distance);
     SmartDashboard.putNumber("swerve/modules/" + module.configuration.name + "/SysId Drive Velocity", velocity);
     log.motor("drive-" + module.configuration.name)
-       .voltage(m_appliedVoltage.mut_replace(power, Volts))
-       .linearPosition(m_distance.mut_replace(distance, Meters))
-       .linearVelocity(m_velocity.mut_replace(velocity, MetersPerSecond));
+       .voltage(Volts.of(power))
+       .linearPosition(Meters.of(distance))
+       .linearVelocity(MetersPerSecond.of(velocity));
   }
 
   /**
@@ -369,22 +302,14 @@ public class SwerveDriveTest
   {
     return new SysIdRoutine(config, new SysIdRoutine.Mechanism(
         (Voltage voltage) -> {
-          if (!SwerveDriveTelemetry.isSimulation)
-          {
             if (testWithSpinning)
             {
-              SwerveDriveTest.setModulesToRotaryPosition(swerveDrive);
+                SwerveDriveTest.setModulesToRotaryPosition(swerveDrive);
             } else
             {
-              SwerveDriveTest.centerModules(swerveDrive);
+                SwerveDriveTest.centerModules(swerveDrive);
             }
             SwerveDriveTest.powerDriveMotorsVoltage(swerveDrive, Math.min(voltage.in(Volts), maxVolts));
-          } else
-          {
-            SwerveDriveTest.runDriveMotorsCharacterizationOnSimModules(swerveDrive,
-                                                                       voltage.in(Volts),
-                                                                       testWithSpinning);
-          }
         },
         log -> {
           for (SwerveModule module : swerveDrive.getModules())
@@ -437,9 +362,9 @@ public class SwerveDriveTest
     SmartDashboard.putNumber("swerve/modules/" + module.configuration.name + "/SysId Absolute Encoder Velocity",
                              velocity);
     log.motor("angle-" + module.configuration.name)
-       .voltage(m_appliedVoltage.mut_replace(power, Volts))
-       .angularPosition(m_anglePosition.mut_replace(angle, Degrees))
-       .angularVelocity(m_angVelocity.mut_replace(velocity, DegreesPerSecond));
+       .voltage(Volts.of(power))
+       .angularPosition(Degrees.of(angle))
+       .angularVelocity(DegreesPerSecond.of(velocity));
   }
 
   /**
@@ -455,14 +380,8 @@ public class SwerveDriveTest
   {
     return new SysIdRoutine(config, new SysIdRoutine.Mechanism(
         (Voltage voltage) -> {
-          if (!SwerveDriveTelemetry.isSimulation)
-          {
             SwerveDriveTest.powerAngleMotorsVoltage(swerveDrive, voltage.in(Volts));
             SwerveDriveTest.powerDriveMotorsVoltage(swerveDrive, 0);
-          } else
-          {
-            SwerveDriveTest.runAngleMotorsCharacterizationOnSimModules(swerveDrive, voltage.in(Volts));
-          }
         },
         log -> {
           for (SwerveModule module : swerveDrive.getModules())

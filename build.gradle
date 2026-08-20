@@ -1,0 +1,38 @@
+plugins {
+    id 'java'
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir "yagsl/java"
+        }
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url = uri("https://frcmaven.wpi.edu/artifactory/release-2027/")
+    }
+    maven {
+        url = uri("https://maven.ctr-electronics.com/release/")
+    }
+}
+
+dependencies {
+    def wpilibVersion = "2027.0.0-alpha-6"
+    implementation "org.wpilib.ntcore:ntcore-java:$wpilibVersion"
+    implementation "org.wpilib.wpilibj:wpilibj-java:$wpilibVersion"
+    implementation "org.wpilib.wpiutil:wpiutil-java:$wpilibVersion"
+    implementation "org.wpilib.wpimath:wpimath-java:$wpilibVersion"
+    implementation "org.wpilib.wpiunits:wpiunits-java:$wpilibVersion"
+    implementation "org.wpilib.commandsv2:commandsv2-java:$wpilibVersion"
+
+    implementation "org.ejml:ejml-simple:0.44.0"
+    implementation "com.fasterxml.jackson.core:jackson-annotations:2.19.2"
+    implementation "com.fasterxml.jackson.core:jackson-core:2.19.2"
+    implementation "com.fasterxml.jackson.core:jackson-databind:2.19.2"
+
+    implementation "com.ctre.phoenix6:wpiapi-java:26.50.0-alpha-1"
+}
