@@ -6,6 +6,7 @@ import org.wpilib.math.system.DCMotor;
 
 import swervelib.encoders.CANCoderSwerve;
 import swervelib.encoders.SwerveAbsoluteEncoder;
+import swervelib.imu.Pigeon2Swerve;
 import swervelib.imu.SwerveIMU;
 import swervelib.imu.SyscoreIMU;
 import swervelib.motors.SwerveMotor;
@@ -69,6 +70,8 @@ public class DeviceJson
     {
       case "syscore":
         return new SyscoreIMU();
+      case "pigeon2":
+        return new Pigeon2Swerve(id, canbus);
       default:
         throw new RuntimeException(type + " is not a recognized imu/gyroscope type.");
     }
