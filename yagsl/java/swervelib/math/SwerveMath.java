@@ -307,11 +307,11 @@ public class SwerveMath
                 deltaV
                     // Rotates the velocity vector to convert from field-relative to robot-relative
                     .rotateBy(robotPose.getRotation().unaryMinus())
-                    .getAngle(),
+                    .getAngle().get(),
                 matter,
                 robotMass,
                 config),
-            deltaV.getAngle());
+            deltaV.getAngle().get());
 
     // Calculate the maximum achievable velocity by the next loop cycle.
     // delta V = Vf - Vi = at
@@ -403,7 +403,7 @@ public class SwerveMath
     {
       return translation;
     }
-    return new Translation2d(Math.pow(translation.getNorm(), 3), translation.getAngle());
+    return new Translation2d(Math.pow(translation.getNorm(), 3), translation.getAngle().get());
   }
 
   /**
@@ -419,6 +419,6 @@ public class SwerveMath
     {
       return translation;
     }
-    return new Translation2d(translation.getNorm() * scalar, translation.getAngle());
+    return new Translation2d(translation.getNorm() * scalar, translation.getAngle().get());
   }
 }

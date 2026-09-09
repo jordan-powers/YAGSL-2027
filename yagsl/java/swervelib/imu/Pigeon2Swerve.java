@@ -5,6 +5,8 @@ import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.Pigeon2Configuration;
 import com.ctre.phoenix6.configs.Pigeon2Configurator;
 import com.ctre.phoenix6.hardware.Pigeon2;
+
+import org.wpilib.hardware.bus.CANPort;
 import org.wpilib.math.geometry.Rotation3d;
 import org.wpilib.math.geometry.Translation3d;
 import org.wpilib.units.measure.AngularVelocity;
@@ -57,14 +59,14 @@ public class Pigeon2Swerve extends SwerveIMU
    * @param canid  CAN ID for the {@link Pigeon2}
    * @param canbus CAN Bus name the {@link Pigeon2} resides on.
    */
-  public Pigeon2Swerve(int canid, int canbus)
+  public Pigeon2Swerve(int canid, CANPort canbus)
   {
-    imu = new Pigeon2(canid, CANBus.systemcore(canbus));
+    imu = new Pigeon2(canid, new CANBus(canbus));
     this.cfg = imu.getConfigurator();
     xAcc = imu::getAccelerationX;
     yAcc = imu::getAccelerationY;
     zAcc = imu::getAccelerationZ;
-    // SmartDashboard.putData(imu);
+    // Telemetry.log(imu);
   }
 
   /**
@@ -74,7 +76,7 @@ public class Pigeon2Swerve extends SwerveIMU
    */
   public Pigeon2Swerve(int canid)
   {
-    this(canid, 0);
+    this(canid, CANPort.CAN_S0);
   }
 
   @Override

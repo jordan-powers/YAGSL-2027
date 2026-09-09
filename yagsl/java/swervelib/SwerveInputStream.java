@@ -582,7 +582,7 @@ public class SwerveInputStream implements Supplier<ChassisVelocities>
    */
   public SwerveInputStream aim(Supplier<Pose2d> aimTarget)
   {
-    this.aimTarget = aimTarget.get().equals(Pose2d.kZero) ? Optional.empty() : Optional.of(aimTarget);
+    this.aimTarget = aimTarget.get().equals(Pose2d.ZERO) ? Optional.empty() : Optional.of(aimTarget);
     return this;
   }
 
@@ -1037,7 +1037,7 @@ public class SwerveInputStream implements Supplier<ChassisVelocities>
       var aimLookAhead = aimLookaheadTime.get().in(Seconds);
       var poseTransform = new Transform2d(Meters.of(currentFieldOrientedSpeeds.vx * aimLookAhead),
                                           Meters.of(currentFieldOrientedSpeeds.vy * aimLookAhead),
-                                          Rotation2d.kZero);
+                                          Rotation2d.ZERO);
       currentPose = currentPose.plus(poseTransform);
     }
 
@@ -1138,7 +1138,7 @@ public class SwerveInputStream implements Supplier<ChassisVelocities>
         //  targetVector = targetVector.div(targetDistance).times(sotmDistanceToRPSMap.get(targetDistance)*flyWheelCircumference)
         //  var shotVector = targetVector.minus(new Translation2d(currentSpeeds.vx, currentSpeeds.vy);
         var shotVector = targetVector;
-        Rotation2d target = shotVector.getAngle();
+        Rotation2d target = shotVector.getAngle().get();
         if (aimHeadingOffsetEnabled.isPresent() && aimHeadingOffsetEnabled.get().getAsBoolean() && aimHeadingOffset.isPresent())
         {
           target = target.plus(aimHeadingOffset.get());

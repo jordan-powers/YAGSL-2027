@@ -4,6 +4,8 @@ import static org.wpilib.units.Units.Degrees;
 import static org.wpilib.units.Units.Rotations;
 import static org.wpilib.units.Units.Volts;
 
+import org.wpilib.hardware.bus.CANPort;
+
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfigurator;
@@ -93,9 +95,9 @@ public class TalonFXSwerve extends SwerveMotor
    * @param isDriveMotor Whether the motor is a drive or steering motor.
    * @param motorType    {@link DCMotor} which the {@link TalonFX} is attached to.
    */
-  public TalonFXSwerve(int id, int canbus, boolean isDriveMotor, DCMotor motorType)
+  public TalonFXSwerve(int id, CANPort canbus, boolean isDriveMotor, DCMotor motorType)
   {
-    this(new TalonFX(id, CANBus.systemcore(canbus)), isDriveMotor, motorType);
+    this(new TalonFX(id, new CANBus(canbus)), isDriveMotor, motorType);
   }
 
   /**
@@ -107,7 +109,7 @@ public class TalonFXSwerve extends SwerveMotor
    */
   public TalonFXSwerve(int id, boolean isDriveMotor, DCMotor motorType)
   {
-    this(id, 0, isDriveMotor, motorType);
+    this(id, CANPort.CAN_S0, isDriveMotor, motorType);
   }
 
   /**

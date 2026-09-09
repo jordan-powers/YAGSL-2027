@@ -2,6 +2,7 @@ package swervelib.parser.json;
 
 import static swervelib.telemetry.SwerveDriveTelemetry.canIdWarning;
 
+import org.wpilib.hardware.bus.CANPort;
 import org.wpilib.math.system.DCMotor;
 
 import swervelib.encoders.CANCoderSwerve;
@@ -49,7 +50,7 @@ public class DeviceJson
       case "none":
         return null;
       case "cancoder":
-        return new CANCoderSwerve(id, canbus);
+        return new CANCoderSwerve(id, syscoreBus(canbus));
       default:
         throw new RuntimeException(type + " is not a recognized absolute encoder type.");
     }
@@ -71,7 +72,7 @@ public class DeviceJson
       case "syscore":
         return new SyscoreIMU();
       case "pigeon2":
-        return new Pigeon2Swerve(id, canbus);
+        return new Pigeon2Swerve(id, syscoreBus(canbus));
       default:
         throw new RuntimeException(type + " is not a recognized imu/gyroscope type.");
     }
@@ -92,10 +93,21 @@ public class DeviceJson
     switch (type)
     {
       case "krakenx60":
-        return new TalonFXSwerve(id, canbus, isDriveMotor, DCMotor.getKrakenX60(1));
+        return new TalonFXSwerve(id, syscoreBus(canbus), isDriveMotor, DCMotor.getKrakenX60(1));
       default:
         throw new RuntimeException(type + " is not a recognized motor type.");
     }
 
+  }
+
+  private static CANPort syscoreBus(int bus) {
+    return switch(bus) {
+        case 0 -> CANPort.CAN_S0;
+        case 1 -> CANPort.CAN_S1;
+        case 2 -> CANPort.CAN_S2;
+        case 3 -> CANPort.CAN_S3;
+        case 4 -> CANPort.CAN_S4;
+        default -> throw new IllegalArgumentException("Invalid syscore bus [" + bus + "]");
+    };
   }
 }

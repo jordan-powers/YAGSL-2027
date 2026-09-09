@@ -16,13 +16,13 @@ import org.wpilib.driverstation.DriverStationErrors;
 import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.kinematics.ChassisVelocities;
 import org.wpilib.math.kinematics.SwerveModuleVelocity;
-import org.wpilib.smartdashboard.SmartDashboard;
 import org.wpilib.sysid.SysIdRoutineLog;
 import org.wpilib.system.RobotController;
 import org.wpilib.system.Timer;
 import org.wpilib.units.measure.Voltage;
 import java.util.function.Supplier;
 import swervelib.encoders.SwerveAbsoluteEncoder;
+import org.wpilib.telemetry.Telemetry;
 
 /**
  * Class to perform tests on the swerve drive.
@@ -277,9 +277,10 @@ public class SwerveDriveTest
     double power    = powerSupplied.get();
     double distance = module.getPosition().distance;
     double velocity = module.getDriveMotor().getVelocity();
-    SmartDashboard.putNumber("swerve/modules/" + module.configuration.name + "/SysId Drive Power", power);
-    SmartDashboard.putNumber("swerve/modules/" + module.configuration.name + "/SysId Drive Position", distance);
-    SmartDashboard.putNumber("swerve/modules/" + module.configuration.name + "/SysId Drive Velocity", velocity);
+    var table = Telemetry.getTable("swerve/modules/" + module.configuration.name);
+    table.log("SysId Drive Power", power);
+    table.log("SysId Drive Position", distance);
+    table.log("SysId Drive Velocity", velocity);
     log.motor("drive-" + module.configuration.name)
        .voltage(Volts.of(power))
        .linearPosition(Meters.of(distance))
@@ -357,10 +358,10 @@ public class SwerveDriveTest
     double power    = powerSupplied.get();
     double angle    = module.getAngleMotor().getPosition();
     double velocity = module.getAngleMotor().getVelocity();
-    SmartDashboard.putNumber("swerve/modules/" + module.configuration.name + "/SysId Angle Power", power);
-    SmartDashboard.putNumber("swerve/modules/" + module.configuration.name + "/SysId Angle Position", angle);
-    SmartDashboard.putNumber("swerve/modules/" + module.configuration.name + "/SysId Absolute Encoder Velocity",
-                             velocity);
+    var table = Telemetry.getTable("swerve/modules/" + module.configuration.name);
+    table.log("SysId Angle Power", power);
+    table.log("SysId Angle Position", angle);
+    table.log("SysId Absolute Encoder Velocity", velocity);
     log.motor("angle-" + module.configuration.name)
        .voltage(Volts.of(power))
        .angularPosition(Degrees.of(angle))
@@ -404,12 +405,12 @@ public class SwerveDriveTest
   public static Command generateSysIdCommand(SysIdRoutine sysIdRoutine, double delay, double quasiTimeout,
                                              double dynamicTimeout)
   {
-    return sysIdRoutine.quasistatic(SysIdRoutine.Direction.kForward).withTimeout(quasiTimeout)
+    return sysIdRoutine.quasistatic(SysIdRoutine.Direction.FORWARD).withTimeout(quasiTimeout)
                        .andThen(Commands.waitSeconds(delay))
-                       .andThen(sysIdRoutine.quasistatic(SysIdRoutine.Direction.kReverse).withTimeout(quasiTimeout))
+                       .andThen(sysIdRoutine.quasistatic(SysIdRoutine.Direction.REVERSE).withTimeout(quasiTimeout))
                        .andThen(Commands.waitSeconds(delay))
-                       .andThen(sysIdRoutine.dynamic(SysIdRoutine.Direction.kForward).withTimeout(dynamicTimeout))
+                       .andThen(sysIdRoutine.dynamic(SysIdRoutine.Direction.FORWARD).withTimeout(dynamicTimeout))
                        .andThen(Commands.waitSeconds(delay))
-                       .andThen(sysIdRoutine.dynamic(SysIdRoutine.Direction.kReverse).withTimeout(dynamicTimeout));
+                       .andThen(sysIdRoutine.dynamic(SysIdRoutine.Direction.REVERSE).withTimeout(dynamicTimeout));
   }
 }
