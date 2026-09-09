@@ -13,7 +13,7 @@ sourceSets {
 repositories {
     mavenCentral()
     maven {
-        url = uri("https://frcmaven.wpi.edu/artifactory/release-2027/")
+        url = uri("https://frcmaven.wpi.edu/artifactory/release/")
     }
     maven {
         url = uri("https://maven.ctr-electronics.com/release/")
@@ -21,8 +21,10 @@ repositories {
 }
 
 dependencies {
-    def wpilibVersion = "2027.0.0-alpha-6"
+    def wpilibVersion = "2027.0.0-alpha-7"
     implementation "org.wpilib.ntcore:ntcore-java:$wpilibVersion"
+    implementation "org.wpilib.telemetry:telemetry-java:$wpilibVersion"
+    implementation "org.wpilib.tunables:tunables-java:$wpilibVersion"
     implementation "org.wpilib.wpilibj:wpilibj-java:$wpilibVersion"
     implementation "org.wpilib.wpiutil:wpiutil-java:$wpilibVersion"
     implementation "org.wpilib.wpimath:wpimath-java:$wpilibVersion"

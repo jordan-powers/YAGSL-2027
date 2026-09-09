@@ -5,7 +5,7 @@ import static org.wpilib.units.Units.Milliseconds;
 import static org.wpilib.units.Units.Rotations;
 import static org.wpilib.units.Units.Seconds;
 
-import org.wpilib.driverstation.Alert;
+import org.wpilib.util.Alert;
 
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.StatusCode;
@@ -95,18 +95,22 @@ public class CANCoderSwerve extends SwerveAbsoluteEncoder
     velocity = encoder.getVelocity();
     magnetFieldLessThanIdeal = new Alert(
         "Encoders",
+        "magnetFieldLessThanIdeal-" + encoder.getDeviceID() ,
         "CANCoder " + encoder.getDeviceID() + " magnetic field is less than ideal.",
         Alert.Level.MEDIUM);
     readingFaulty = new Alert(
         "Encoders",
+        "readingFaulty" + encoder.getDeviceID(),
         "CANCoder " + encoder.getDeviceID() + " reading was faulty.",
         Alert.Level.MEDIUM);
     readingIgnored = new Alert(
         "Encoders",
+        "readingIgnored" + encoder.getDeviceID(),
         "CANCoder " + encoder.getDeviceID() + " reading was faulty, ignoring.",
         Alert.Level.MEDIUM);
     cannotSetOffset = new Alert(
         "Encoders",
+        "cannotSetOffset" + encoder.getDeviceID(),
         "Failure to set CANCoder "
         + encoder.getDeviceID()
         + " Absolute Encoder Offset",

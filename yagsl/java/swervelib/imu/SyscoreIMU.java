@@ -12,14 +12,14 @@ import org.wpilib.units.measure.AngularVelocity;
 public class SyscoreIMU extends SwerveIMU {
     private OnboardIMU imu = new OnboardIMU(MountOrientation.FLAT);
 
-    private Rotation3d offset = Rotation3d.kZero;
+    private Rotation3d offset = Rotation3d.ZERO;
 
     @Override
     public void close() {}
 
     @Override
     public void factoryDefault() {
-        offset = Rotation3d.kZero;
+        offset = Rotation3d.ZERO;
     }
 
     @Override

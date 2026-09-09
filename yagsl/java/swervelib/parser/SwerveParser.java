@@ -142,7 +142,7 @@ public class SwerveParser
    */
   public SwerveDrive createSwerveDrive(double maxSpeed)
   {
-    return createSwerveDrive(maxSpeed, Pose2d.kZero);
+    return createSwerveDrive(maxSpeed, Pose2d.ZERO);
   }
 
   /**
@@ -163,7 +163,7 @@ public class SwerveParser
   {
     physicalPropertiesJson.conversionFactors.angle.factor = angleMotorConversionFactor;
     physicalPropertiesJson.conversionFactors.drive.factor = driveMotorConversion;
-    return createSwerveDrive(maxSpeed, Pose2d.kZero);
+    return createSwerveDrive(maxSpeed, Pose2d.ZERO);
   }
 
   /**

@@ -25,7 +25,6 @@ import org.wpilib.math.util.Units;
 import org.wpilib.networktables.DoublePublisher;
 import org.wpilib.networktables.NetworkTableInstance;
 import org.wpilib.smartdashboard.Field2d;
-import org.wpilib.smartdashboard.SmartDashboard;
 import org.wpilib.system.Notifier;
 import org.wpilib.units.measure.AngularVelocity;
 import org.wpilib.units.measure.Force;
@@ -45,6 +44,7 @@ import swervelib.parser.SwerveDriveConfiguration;
 import swervelib.telemetry.Alert;
 import swervelib.telemetry.SwerveDriveTelemetry;
 import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
+import org.wpilib.telemetry.Telemetry;
 
 /**
  * Swerve Drive class representing and controlling the swerve drive.
@@ -225,7 +225,7 @@ public class SwerveDrive implements AutoCloseable
     // Initialize Telemetry
     if (SwerveDriveTelemetry.verbosity.ordinal() >= TelemetryVerbosity.POSE.ordinal())
     {
-      SmartDashboard.putData("Field", field);
+      Telemetry.log("Field", field);
     }
 
     if (SwerveDriveTelemetry.verbosity.ordinal() >= TelemetryVerbosity.INFO.ordinal())
@@ -981,7 +981,7 @@ public class SwerveDrive implements AutoCloseable
     for (SwerveModule swerveModule : swerveModules)
     {
       SwerveModuleVelocity desiredState =
-          new SwerveModuleVelocity(0, swerveModule.configuration.moduleLocation.getAngle());
+          new SwerveModuleVelocity(0, swerveModule.configuration.moduleLocation.getAngle().get());
       if (SwerveDriveTelemetry.verbosity.ordinal() >= TelemetryVerbosity.INFO.ordinal())
       {
         SwerveDriveTelemetry.desiredStatesObj[swerveModule.moduleNumber] = desiredState;

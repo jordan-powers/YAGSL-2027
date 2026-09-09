@@ -64,7 +64,7 @@ public class Pigeon2Swerve extends SwerveIMU
     xAcc = imu::getAccelerationX;
     yAcc = imu::getAccelerationY;
     zAcc = imu::getAccelerationZ;
-    // SmartDashboard.putData(imu);
+    // Telemetry.log(imu);
   }
 
   /**
